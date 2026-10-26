@@ -1,3 +1,19 @@
+> [!NOTE]
+> **About this fork: third-party screen reader support**
+>
+> This fork of [MustardChef/WSABuilds](https://github.com/MustardChef/WSABuilds) adds one change to
+> WSA: keys typed in Windows now reach Android accessibility services, so screen readers other than
+> the built-in Subsystem Screen Reader (for example TalkBack from the Play Store, or Jieshuo) can use
+> their keyboard shortcuts. Stock WSA lets them see only modifier keys and some Alt combinations
+> (upstream issue [#182](https://github.com/MustardChef/WSABuilds/issues/182)).
+>
+> - Download: [patched LTS 8 build, Windows 11 x64, GApps, no Amazon](https://github.com/vortex1024/WSABuilds/releases/tag/Windows_11_2407.40000.4.0_LTS_8_a11y). Install it like the upstream builds.
+> - How it works, side effects and the patch source: [Accessibility/README.md](Accessibility/README.md)
+>
+> Everything below this note is the upstream README, unchanged.
+
+---
+
 > [!IMPORTANT]  
 > <details>
 > <summary><h3>IF YOU HAVE BEEN RECENTLY HAVING ISSUES WITH SOME APPS BREAKING OR NOT STARTING OR APPS GETTING SUCK AT LOADING SCREEN OR APPS STUCK ON SPLASHSCREEN ( STUCK ON THE APP ICON SCREEN) OR ANY OTHER SIMILAR CASES AFTER THE <code>1ST OF SEPTEMBER 2026</code>.<br/><br/>UPDATE TO THE LATEST LTS RELEASE!</h3><br/><h5>CLICK HERE FOR MORE INFORMATION</h5></summary>

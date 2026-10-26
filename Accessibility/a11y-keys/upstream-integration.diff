@@ -1,0 +1,62 @@
+diff --git a/.github/workflows/build.yml b/.github/workflows/build.yml
+index 11c1579..2cb0840 100644
+--- a/.github/workflows/build.yml
++++ b/.github/workflows/build.yml
+@@ -81,6 +81,18 @@ jobs:
+           mkdir -p download
+           ./scripts/build.sh --arch ${{ inputs.arch }} --release-type WIF --magisk-ver ${{ inputs.magiskver }} ${{ inputs.gapps }} --root-sol ${{ inputs.root }} ${{ inputs.amazonflag }} --compress-format none
+ 
++      - name: Download smali/baksmali for the a11y-keys patch ⌨️
++        working-directory: MagiskOnWSA
++        run: |
++          mkdir -p a11y-keys/tools
++          curl -fsSL -o a11y-keys/tools/smali-2.5.2.jar https://bitbucket.org/JesusFreke/smali/downloads/smali-2.5.2.jar
++          curl -fsSL -o a11y-keys/tools/baksmali-2.5.2.jar https://bitbucket.org/JesusFreke/smali/downloads/baksmali-2.5.2.jar
++          echo "9544299578b16f771d8aa8eaefe0d3718ca03478c16f3c356f2fcf1366bfb116  a11y-keys/tools/smali-2.5.2.jar" | sha256sum -c
++          echo "d3116248cce4f82ec5a31eb7f95ee75daff42ddf6eed0ab573973dc53fbad2e5  a11y-keys/tools/baksmali-2.5.2.jar" | sha256sum -c
++          echo "SMALI_JAR=$PWD/a11y-keys/tools/smali-2.5.2.jar" >> "$GITHUB_ENV"
++          echo "BAKSMALI_JAR=$PWD/a11y-keys/tools/baksmali-2.5.2.jar" >> "$GITHUB_ENV"
++        shell: bash
++
+       - name: Install Houdini and Process Images 🔧
+         working-directory: MagiskOnWSA
+         run: |      
+diff --git a/MagiskOnWSA/libhoudini/houdini_installer.sh b/MagiskOnWSA/libhoudini/houdini_installer.sh
+index 126ee6d..635e526 100644
+--- a/MagiskOnWSA/libhoudini/houdini_installer.sh
++++ b/MagiskOnWSA/libhoudini/houdini_installer.sh
+@@ -153,6 +153,24 @@ find_correct_mount_paths() {
+     echo "  Vendor root: $VENDOR_ROOT"
+ }
+ 
++# Screen readers: route the key events WSA injects through the accessibility input filter
++# (see a11y-keys/README.md). Needs SMALI_JAR and BAKSMALI_JAR; skipped when the patcher is absent.
++patch_a11y_keys() {
++    local patcher
++    patcher="$(realpath ./a11y-keys)/wsa_a11y_keys.py"
++    if [ ! -f "$patcher" ]; then
++        echo "a11y-keys patcher not found, skipping"
++        return 0
++    fi
++    local rc=0
++    sudo python3 "$patcher" --system "$SYSTEM_ROOT" --smali "$SMALI_JAR" --baksmali "$BAKSMALI_JAR" || rc=$?
++    case $rc in
++        0) ;;
++        2) echo "Warning: a11y-keys patch does not fit this build, skipped" ;;
++        *) abort "a11y-keys patch failed" ;;
++    esac
++}
++
+ # Function to make changes (install Houdini)
+ make_changes() {
+     echo "=== Making Changes (Installing Houdini) ==="
+@@ -425,6 +443,9 @@ process_wsa_image "vendor" "$VENDOR_TARGET_SIZE"
+ # Make changes (install Houdini)
+ make_changes
+ 
++# Accessibility key routing for screen readers
++patch_a11y_keys
++
+ # Finalize system image
+ finalize_wsa_image "system"
+ 
